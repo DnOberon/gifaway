@@ -42,8 +42,9 @@ func (p *Pool) work() {
 
 // Generic Task structure, allowing freedom of func definition
 type Task struct {
-	Err error
-	f   func() error
+	Err  error
+	Name string
+	f    func() error
 }
 
 func NewTask(f func() error) *Task {

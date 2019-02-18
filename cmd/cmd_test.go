@@ -11,5 +11,5 @@ func TestSplit(t *testing.T) {
 		t.FailNow()
 	}
 
-	split("../full.mkv", d.Seconds())
+	split("../full.mkv", "../../results", d.Seconds())
 }

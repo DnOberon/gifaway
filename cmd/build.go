@@ -54,13 +54,15 @@ func split(videoName, outputDirectory string, duration float64) {
 	// if the directory is failing to be read for another reason, the ffmpeg output will (hopefully) clarify
 	if err != nil {
 		// ffmpeg will not create a dir automatically
-		err = os.Mkdir(outputDirectory, os.ModeAppend)
+		// TODO fix permissions
+		err = os.Mkdir(outputDirectory, 0777)
 	} else {
 		for _, d := range dir {
 			os.RemoveAll(path.Join([]string{outputDirectory, d.Name()}...))
 		}
 	}
 
+	// TODO this whole thing might be better outside
 	var out bytes.Buffer
 	var stderr bytes.Buffer
 
@@ -92,16 +94,24 @@ func split(videoName, outputDirectory string, duration float64) {
 	// TODO Cleanup Worker pool functions
 	// load the tasks up
 	var tasks []*Task
+	var outTime []*int
 
-	for i := 1; i < int(movieDuration.Seconds()/duration); i++ {
-		ripTask(i*int(duration), (i+1)*int(duration), videoName, outputDirectoryName)
+	for i := 0; i < int(movieDuration.Seconds()/duration); i++ {
 
-		fmt.Println(i * int(duration))
-		tasks = append(tasks, NewTask(func() error {
-			return ripTask(i*int(duration), (i+1)*int(duration), videoName, outputDirectoryName)
-		}))
+		newRip := ripTask(i*int(duration), (i+1)*int(duration), videoName, outputDirectory)
+		newTask := NewTask(func() error {
+			return newRip
+		})
+		newTask.Name = fmt.Sprintf("%d, %d", i*int(duration), (i+1)*int(duration))
+		tasks = append(tasks, newTask)
+
+		result := i * int(duration)
+		outTime = append(outTime, &result)
 
 	}
+
+	p := NewPool(tasks, 10)
+	p.Run()
 
 	// TODO better error handling
 	if err != nil {
@@ -114,6 +124,8 @@ func split(videoName, outputDirectory string, duration float64) {
 // TODO work on better function arguments, allowing for some
 // TODO work on safer output directory challenge
 func ripTask(startSecond, endSecond int, fileName, outputDirectory string) error {
+	fmt.Println("started")
+	fmt.Println(outputDirectory)
 	var out bytes.Buffer
 	var stderr bytes.Buffer
 
@@ -134,8 +146,9 @@ func ripTask(startSecond, endSecond int, fileName, outputDirectory string) error
 	ripCommand.Stdout = &out
 	ripCommand.Stderr = &stderr
 
-	ripCommand.Run()
-	fmt.Println(stderr.String())
+	ripCommand.Start()
+	ripCommand.Wait()
 	fmt.Println(out.String())
+	fmt.Println(stderr.String())
 	return nil
 }
