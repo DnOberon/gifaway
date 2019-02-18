@@ -1,4 +1,4 @@
-package cmd
+package split
 
 import (
 	"testing"
@@ -11,5 +11,5 @@ func TestSplit(t *testing.T) {
 		t.FailNow()
 	}
 
-	split("../full.mkv", "../../results", d.Seconds())
+	Execute("../full.avi", "../../results", d.Seconds())
 }

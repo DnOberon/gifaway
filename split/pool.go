@@ -1,6 +1,9 @@
-package cmd
+package split
 
-import "sync"
+import (
+	"os/exec"
+	"sync"
+)
 
 // Simple worker pool structure using channels
 type Pool struct {
@@ -40,18 +43,28 @@ func (p *Pool) work() {
 	}
 }
 
-// Generic Task structure, allowing freedom of func definition
 type Task struct {
-	Err  error
+	ID   int
 	Name string
-	f    func() error
+
+	Command  *exec.Cmd
+	ErrorBag []error
 }
 
-func NewTask(f func() error) *Task {
-	return &Task{f: f}
+func NewTask(id int, name string, command *exec.Cmd) *Task {
+	return &Task{Command: command}
 }
 
 func (t *Task) Run(wg *sync.WaitGroup) {
-	t.Err = t.f()
+	// was running into some issues with either all tasks executing, or only one
+	// I'm sure I'm missing something obvious, but until that time this will solve the problem
+	if err := t.Command.Start(); err != nil {
+		t.ErrorBag = append(t.ErrorBag, err)
+	}
+
+	if err := t.Command.Wait(); err != nil {
+		t.ErrorBag = append(t.ErrorBag, err)
+	}
+
 	wg.Done()
 }
