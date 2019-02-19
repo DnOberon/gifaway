@@ -11,5 +11,5 @@ func TestSplit(t *testing.T) {
 		t.FailNow()
 	}
 
-	Execute("../full.avi", "../../results", d.Seconds())
+	Execute("YOUR VIDEO FILE HERE", "../../results", d.Seconds())
 }

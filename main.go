@@ -36,6 +36,6 @@ func Execute() {
 }
 
 func init() {
-	rootCmd.Flags().Float64Var(&splitDuration, "duration", 0, "Duration of split gifs in seconds")
-	rootCmd.Flags().StringVar(&outputDirectoryName, "output folder name", "results", "Gif output directory name")
+	rootCmd.Flags().Float64Var(&splitDuration, "duration", 30, "Duration of split gifs in seconds")
+	rootCmd.Flags().StringVar(&outputDirectoryName, "output", "results", "Gif output directory name")
 }
